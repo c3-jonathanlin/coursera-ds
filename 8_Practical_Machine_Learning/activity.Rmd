@@ -1,0 +1,44 @@
+# Predicting method of exercise
+
+## Exploratory analysis
+First we load the data:
+
+```{r}
+library("ggplot2")
+data(mtcars)
+```
+We can plot out a high level overview of the distribution of MPG for both automatic and manual transmission cars:
+```{r}
+ggplot(mtcars, aes(x=factor(am), group=am, y=mpg)) + geom_boxplot() + 
+  xlab("Transmission") + ylab("MPG") + ggtitle("MPG Boxplots") + 
+  scale_x_discrete(labels=c("Automatic", "Manual"))
+```
+It appears that manual transmission cars have higher MPG, so we perform a t-test to see if the difference is statistically significant.
+
+## T-Test
+```{r}
+manualCars <- mtcars[mtcars$am == 1, ]
+automaticCars <- mtcars[mtcars$am == 0, ]
+manualCars <- manualCars[, "mpg"]
+automaticCars <- automaticCars[, "mpg"]
+t.test(manualCars, automaticCars)
+```
+
+A difference of 0 is not included in the 95% confidence interval, so we can say the difference is statistically significant.
+
+## Modeling
+
+We fit a linear model showing how mpg changes according to every other feature in the dataset.
+
+```{r}
+lmfit <- lm(mpg ~ ., data=mtcars)
+summary(lmfit)
+```
+Here we see how each of the variables in the dataset affect the mileage. For example, it seems like as weight goes up, mileage goes down, but as gear goes up, mileage also goes up.
+
+We can plot residuals after passing this through the step function:
+```{r}
+stepAnalysis <- step(lmfit, trace=FALSE)
+plot(stepAnalysis)
+```
+We see no pattern in the residuals which implies the variables we are using are independent from each other.
